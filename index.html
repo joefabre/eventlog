@@ -44,7 +44,50 @@
             <!-- Print content will be generated here -->
         </div>
     </div>
-    <button id="git-push-btn" class="git-push-btn" onclick="handleGitPush()">Push to GitHub</button>
+    <button id="readme-btn" class="readme-btn">README</button>
+
+    <!-- README Modal -->
+    <div id="readme-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Event Log - Documentation</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>Features</h3>
+                <ul>
+                    <li>Real-time event logging with timestamps</li>
+                    <li>Automated daily check-ins (08:00 and 20:00)</li>
+                    <li>Event filtering by date range and text</li>
+                    <li>Print functionality for reports</li>
+                    <li>Selective event deletion</li>
+                </ul>
+
+                <h3>Morning Check-in (08:00)</h3>
+                <ul>
+                    <li>Weather conditions</li>
+                    <li>Property status</li>
+                    <li>Vehicle status</li>
+                    <li>Health check-in</li>
+                    <li>Upcoming events</li>
+                </ul>
+
+                <h3>Evening Check-in (20:00)</h3>
+                <ul>
+                    <li>Mood tracking</li>
+                    <li>Future event planning</li>
+                    <li>Daily summary</li>
+                </ul>
+
+                <h3>Usage</h3>
+                <p>Enter events in the input field at the top and press Enter or click 'Log Event'. Use filters to search through past events. Select events with checkboxes for deletion.</p>
+
+                <h3>About</h3>
+                <p>Created by FABREulous Technology © 2025</p>
+                <p>Version 1.0.0</p>
+            </div>
+        </div>
+    </div>
     <footer class="footer">
         <p>© 2025 by FABREulous Technology</p>
     </footer>

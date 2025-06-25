@@ -136,8 +136,28 @@ async function createEveningEntry() {
     loadEvents();
 }
 
+// Modal functionality
+function openReadmeModal() {
+    document.getElementById('readme-modal').style.display = 'block';
+}
+
+function closeReadmeModal() {
+    document.getElementById('readme-modal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('readme-modal');
+    if (event.target === modal) {
+        closeReadmeModal();
+    }
+}
+
 // Add event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // README button event listener
+    document.getElementById('readme-btn').addEventListener('click', openReadmeModal);
+    document.querySelector('.close').addEventListener('click', closeReadmeModal);
     // Event listener for Enter key in event summary
     document.getElementById('eventSummary').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
