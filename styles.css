@@ -1,0 +1,343 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    line-height: 1.6;
+    background-color: #1e1e1e;
+    color: #fff;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    position: relative;
+    padding-bottom: 60px; /* Height of the footer */
+}
+
+.container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2d2d2d;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border-radius: 4px;
+    border-bottom: 2px solid #4CAF50;
+}
+
+.header h1 {
+    text-align: center;
+    color: #4CAF50;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    flex: 1;
+}
+
+.header-date, .header-time {
+    font-family: 'Courier New', monospace;
+    color: #64B5F6;
+    font-size: 1.2rem;
+    min-width: 200px;
+    line-height: 1.4;
+}
+
+.header-date {
+    text-align: left;
+}
+
+.header-date :first-child {
+    color: #FF9800;
+    font-weight: bold;
+}
+
+.header-time {
+    text-align: right;
+}
+
+.event-input {
+    background: #2d2d2d;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+#eventSummary {
+    flex-grow: 1;
+    padding: 0.5rem;
+    border: 1px solid #4CAF50;
+    border-radius: 4px;
+    background: #1e1e1e;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+}
+
+.log-btn {
+    background: #4CAF50;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+}
+
+.log-btn:hover {
+    background: #45a049;
+}
+
+.event-list {
+    background: #2d2d2d;
+    border-radius: 4px;
+    padding: 1rem;
+}
+
+.event-container {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.event {
+    flex-grow: 1;
+    border-bottom: 1px solid #4CAF50;
+    padding: 0.5rem 0;
+}
+
+.event-checkbox {
+    position: absolute;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    accent-color: #FF5252;
+}
+
+.event-container:hover .event-checkbox {
+    opacity: 1;
+}
+
+.delete-controls {
+    position: fixed;
+    right: 20px;
+    bottom: 80px; /* Increased to be above footer */
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #2d2d2d;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1000; /* Ensure it's above other elements */
+}
+
+.delete-controls.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.delete-count {
+    color: #FF5252;
+    font-family: 'Courier New', monospace;
+}
+
+.delete-btn {
+    background: #FF5252;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: #FF1744;
+}
+
+.event:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.event-timestamp {
+    color: #4CAF50;
+    font-size: 0.9rem;
+}
+
+.event-summary {
+    color: #fff;
+    margin-top: 0.2rem;
+}
+
+.controls {
+    background: #2d2d2d;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.filter-input, .date-input {
+    padding: 0.5rem;
+    border: 1px solid #4CAF50;
+    border-radius: 4px;
+    background: #1e1e1e;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+}
+
+.filter-input {
+    flex-grow: 1;
+}
+
+.filter-btn, .clear-btn, .print-btn {
+    background: #4CAF50;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+}
+
+.clear-btn {
+    background: #666;
+}
+
+.print-btn {
+    background: #2196F3;
+}
+
+.filter-btn:hover, .print-btn:hover {
+    opacity: 0.9;
+}
+
+.clear-btn:hover {
+    background: #777;
+}
+
+/* Print styles */
+.print-only {
+    display: none;
+}
+
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+
+    .container > *:not(#printArea) {
+        display: none;
+    }
+
+    .print-only {
+        display: block;
+        font-family: 'Courier New', monospace;
+        padding: 20px;
+    }
+
+    .print-event {
+        margin-bottom: 10px;
+        page-break-inside: avoid;
+    }
+
+    .print-timestamp {
+        color: #666;
+    }
+
+.print-summary {
+        margin-left: 20px;
+    }
+}
+
+/* Automated entry styles */
+.event[data-type="morning_check"],
+.event[data-type="evening_check"] {
+    border-left: 4px solid #4CAF50;
+    background: #2d2d2d;
+}
+
+.event[data-type="morning_check"] .event-timestamp {
+    color: #64B5F6;
+}
+
+.event[data-type="evening_check"] .event-timestamp {
+    color: #FF9800;
+}
+
+.event-summary pre {
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    margin: 0;
+    padding: 0;
+}
+
+/* Git Push Button styles */
+.git-push-btn {
+    position: fixed;
+    left: 20px;
+    bottom: 80px;
+    background: #2196F3;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 1000;
+    transition: background-color 0.2s ease;
+}
+
+.git-push-btn:hover {
+    background: #1976D2;
+}
+
+/* Footer styles */
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background: #2d2d2d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top: 2px solid #4CAF50;
+}
+
+.footer p {
+    color: #888;
+    font-size: 0.9rem;
+    margin: 0;
+}
