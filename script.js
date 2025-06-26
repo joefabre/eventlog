@@ -22,6 +22,45 @@ function updateDateTime() {
 }
 
 // Load events when the page loads
+// Helper function to group events by day
+function groupEventsByDay(events) {
+    return events.reduce((groups, event) => {
+        const day = new Date(event.timestamp).toISOString().split('T')[0];
+        if (!groups[day]) {
+            groups[day] = [];
+        }
+        groups[day].push(event);
+        return groups;
+    }, {});
+}
+
+function formatDate(date) {
+    return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+    });
+}
+
+function toggleDayContent(content) {
+    content.classList.toggle('expanded');
+}
+
+function collapseAllDaysExceptToday() {
+    const today = new Date().toDateString();
+    const dayContents = document.querySelectorAll('.day-content');
+    dayContents.forEach(content => {
+        const dayHeader = content.previousElementSibling;
+        const dayDate = new Date(dayHeader.textContent).toDateString();
+        if (dayDate !== today) {
+            content.classList.remove('expanded');
+        } else {
+            content.classList.add('expanded');
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initial date/time update
     updateDateTime();
@@ -37,104 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('startDate').valueAsDate = startDate;
     document.getElementById('endDate').valueAsDate = endDate;
 
-    // Check for daily entries
-    checkDailyEntries();
+    // Initialize event display
+    loadEvents();
 
-    // Set up interval to check every minute
-    setInterval(checkDailyEntries, 60000);
+    // Set up interval checks for midnight and week end
+    setInterval(checkMidnight, 60000); // Check every minute
+    setInterval(checkWeekEnd, 60000);
 });
 
-async function checkDailyEntries() {
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const events = JSON.parse(localStorage.getItem('eventLog') || '[]');
-
-    // Check for morning entry (08:00)
-    const morningTime = new Date(today + 'T08:00:00');
-    const hasMorningEntry = events.some(event => 
-        event.type === 'morning_check' && 
-        new Date(event.timestamp).toISOString().split('T')[0] === today
-    );
-
-    if (!hasMorningEntry && now >= morningTime && now < new Date(today + 'T09:00:00')) {
-        await createMorningEntry();
-    }
-
-    // Check for evening entry (20:00)
-    const eveningTime = new Date(today + 'T20:00:00');
-    const hasEveningEntry = events.some(event => 
-        event.type === 'evening_check' && 
-        new Date(event.timestamp).toISOString().split('T')[0] === today
-    );
-
-    if (!hasEveningEntry && now >= eveningTime && now < new Date(today + 'T21:00:00')) {
-        await createEveningEntry();
-    }
-}
-
-async function createMorningEntry() {
-    let weatherSummary = 'Weather data unavailable';
-    try {
-        // Fetch weather data (example using OpenWeatherMap API)
-        const weatherResponse = await fetch('https://api.openweathermap.org/data/2.5/weather?q=YOUR_CITY&appid=YOUR_API_KEY&units=metric');
-        const weatherData = await weatherResponse.json();
-        weatherSummary = `Weather: ${weatherData.weather[0].description}, Temp: ${weatherData.main.temp}°C`;
-    } catch (error) {
-        console.log('Weather data fetch failed:', error);
-    }
-
-    const morningTemplate = `MORNING CHECK-IN [08:00]\n\n` +
-        `Weather: ${weatherSummary}\n\n` +
-        `CONDO STATUS:\n` +
-        `□ Check Security\n` +
-        `□ Check Utilities\n` +
-        `□ Maintenance Items\n\n` +
-        `VEHICLE STATUS:\n` +
-        `□ Vehicle 1 Condition\n` +
-        `□ Vehicle 2 Condition\n\n` +
-        `HEALTH CHECK:\n` +
-        `□ Physical Status\n` +
-        `□ Medications\n` +
-        `□ Exercise Plan\n\n` +
-        `UPCOMING EVENTS:\n` +
-        `□ Today's Schedule\n` +
-        `□ Pending Tasks\n`;
-
-    const events = JSON.parse(localStorage.getItem('eventLog') || '[]');
-    events.push({
-        summary: morningTemplate,
-        timestamp: new Date().setHours(8, 0, 0, 0),
-        type: 'morning_check'
-    });
-
-    localStorage.setItem('eventLog', JSON.stringify(events));
-    loadEvents();
-}
-
-async function createEveningEntry() {
-    const eveningTemplate = `EVENING CHECK-IN [20:00]\n\n` +
-        `DAILY MOOD:\n` +
-        `□ Energy Level (1-10)\n` +
-        `□ Stress Level (1-10)\n` +
-        `□ Overall Mood\n\n` +
-        `FUTURE EVENTS:\n` +
-        `□ New Appointments\n` +
-        `□ Tasks for Tomorrow\n` +
-        `□ Upcoming Deadlines\n\n` +
-        `NOTES:\n` +
-        `□ Notable Events Today\n` +
-        `□ Items for Follow-up\n`;
-
-    const events = JSON.parse(localStorage.getItem('eventLog') || '[]');
-    events.push({
-        summary: eveningTemplate,
-        timestamp: new Date().setHours(20, 0, 0, 0),
-        type: 'evening_check'
-    });
-
-    localStorage.setItem('eventLog', JSON.stringify(events));
-    loadEvents();
-}
 
 // Modal functionality
 function openReadmeModal() {
@@ -183,11 +132,20 @@ function logEvent() {
     // Get existing events or initialize new array
     const events = JSON.parse(localStorage.getItem('eventLog') || '[]');
     
-    // Add new event
-    events.push({
+    // Create new event
+    const newEvent = {
         summary: summary,
         timestamp: new Date().toISOString()
-    });
+    };
+
+    // Check if this event belongs in the current log
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // Always add to current log if it's a newer event
+    events.push(newEvent);
 
     // Sort events by timestamp, newest first
     events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -207,16 +165,164 @@ function loadEvents() {
     displayEvents(events);
 }
 
+// Check for midnight to collapse previous day
+function checkMidnight() {
+    const now = new Date();
+    if (now.getHours() === 0 && now.getMinutes() === 0) {
+        collapseAllDaysExceptToday();
+    }
+}
+
+// Check for end of week (Sunday 23:59) to archive
+function checkWeekEnd() {
+    const now = new Date();
+    if (now.getDay() === 0 && now.getHours() === 23 && now.getMinutes() === 59) {
+        archiveCurrentWeek();
+    }
+}
+
+// Archive the current week's events
+function archiveCurrentWeek() {
+    const events = JSON.parse(localStorage.getItem('eventLog') || '[]');
+    const archives = JSON.parse(localStorage.getItem('eventLogArchives') || '[]');
+    
+    // Get start of the week (last Sunday)
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // Get end of current week (Saturday 23:59:59)
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    // Filter events for the current week
+    const weekEvents = events.filter(event => {
+        const eventDate = new Date(event.timestamp);
+        return eventDate >= startOfWeek && eventDate <= endOfWeek;
+    });
+
+    if (weekEvents.length > 0) {
+        // Add to archives
+        archives.push({
+            weekOf: startOfWeek.toISOString(),
+            events: weekEvents
+        });
+
+        // Keep only events that are after this week
+        const newEvents = events.filter(event => {
+            const eventDate = new Date(event.timestamp);
+            return eventDate > endOfWeek;
+        });
+
+        // Create a new empty day for today if it doesn't exist
+        const today = new Date().toISOString().split('T')[0];
+        const hasToday = newEvents.some(event => {
+            const eventDate = new Date(event.timestamp).toISOString().split('T')[0];
+            return eventDate === today;
+        });
+
+        if (!hasToday) {
+            newEvents.push({
+                summary: "New day started",
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // Save changes
+        localStorage.setItem('eventLogArchives', JSON.stringify(archives));
+        localStorage.setItem('eventLog', JSON.stringify(newEvents));
+
+        // Reload events
+        loadEvents();
+    }
+}
+
 function displayEvents(events) {
     const eventsList = document.getElementById('eventsList');
     eventsList.innerHTML = '';
     
-    if (events.length === 0) {
-        eventsList.innerHTML = '<div class="event">No events found</div>';
-        return;
+    // Get today's date without time
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Create sections for each day
+    const daySection = document.createElement('div');
+    daySection.className = 'day-section';
+    
+    const dayHeader = document.createElement('div');
+    dayHeader.className = 'day-header';
+    dayHeader.innerHTML = `<h2>${formatDate(today)}</h2>`;
+    dayHeader.addEventListener('click', () => toggleDayContent(dayHeader.nextElementSibling));
+    
+    const dayContent = document.createElement('div');
+    dayContent.className = 'day-content expanded';
+    
+    // Filter today's events
+    const todayEvents = events.filter(event => {
+        const eventDate = new Date(event.timestamp);
+        return eventDate.toDateString() === today.toDateString();
+    });
+    
+    if (todayEvents.length === 0) {
+        dayContent.innerHTML = '<div class="event">No events yet today</div>';
+    } else {
+        todayEvents.forEach((event, index) => {
+            const containerDiv = document.createElement('div');
+            containerDiv.className = 'event-container';
+            
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event';
+            
+            const timestamp = new Date(event.timestamp);
+            const formattedTimestamp = formatTimestamp(timestamp);
+            
+            eventDiv.innerHTML = `
+                <div class="event-timestamp">[${formattedTimestamp}]</div>
+                <div class="event-summary">${event.summary}</div>
+            `;
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'event-checkbox';
+            checkbox.setAttribute('data-index', index);
+            checkbox.addEventListener('change', updateDeleteControls);
+            
+            containerDiv.appendChild(eventDiv);
+            containerDiv.appendChild(checkbox);
+            dayContent.appendChild(containerDiv);
+        });
     }
+    
+    daySection.appendChild(dayHeader);
+    daySection.appendChild(dayContent);
+    eventsList.appendChild(daySection);
+    
+    // Handle previous days' events
+    const previousEvents = events.filter(event => {
+        const eventDate = new Date(event.timestamp);
+        return eventDate.toDateString() !== today.toDateString();
+    });
+    
+    if (previousEvents.length > 0) {
+        const eventsByDay = groupEventsByDay(previousEvents);
 
-    events.forEach((event, index) => {
+        Object.entries(eventsByDay).forEach(([day, dayEvents]) => {
+            const prevDaySection = document.createElement('div');
+            prevDaySection.className = 'day-section';
+    
+            const prevDayHeader = document.createElement('div');
+            prevDayHeader.className = 'day-header';
+            const dayDate = new Date(day);
+            prevDayHeader.innerHTML = `<h2>${formatDate(dayDate)}</h2>`;
+            prevDayHeader.addEventListener('click', () => toggleDayContent(prevDayHeader.nextElementSibling));
+    
+            const prevDayContent = document.createElement('div');
+            prevDayContent.className = 'day-content';
+    
+
+    dayEvents.forEach((event, index) => {
         const containerDiv = document.createElement('div');
         containerDiv.className = 'event-container';
         
@@ -229,18 +335,10 @@ function displayEvents(events) {
         const timestamp = new Date(event.timestamp);
         const formattedTimestamp = formatTimestamp(timestamp);
         
-        // Different display for morning and evening check-ins
-        if (event.type === 'morning_check' || event.type === 'evening_check') {
-            eventDiv.innerHTML = `
-                <div class="event-timestamp">[${formattedTimestamp}]</div>
-                <div class="event-summary"><pre>${event.summary}</pre></div>
-            `;
-        } else {
-            eventDiv.innerHTML = `
-                <div class="event-timestamp">[${formattedTimestamp}]</div>
-                <div class="event-summary">${event.summary}</div>
-            `;
-        }
+        eventDiv.innerHTML = `
+            <div class="event-timestamp">[${formattedTimestamp}]</div>
+            <div class="event-summary">${event.summary}</div>
+        `;
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -248,16 +346,17 @@ function displayEvents(events) {
         checkbox.setAttribute('data-index', index);
         checkbox.addEventListener('change', updateDeleteControls);
         
-        // Don't allow deletion of automated entries
-        if (event.type === 'morning_check' || event.type === 'evening_check') {
-            checkbox.disabled = true;
-            checkbox.title = 'Automated entries cannot be deleted';
-        }
         
         containerDiv.appendChild(eventDiv);
         containerDiv.appendChild(checkbox);
-        eventsList.appendChild(containerDiv);
-    });
+                prevDayContent.appendChild(containerDiv);
+            });
+    
+            prevDaySection.appendChild(prevDayHeader);
+            prevDaySection.appendChild(prevDayContent);
+            eventsList.appendChild(prevDaySection);
+        });
+    }
 }
 
 function formatTimestamp(timestamp) {

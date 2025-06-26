@@ -111,17 +111,19 @@ body {
     display: flex;
     align-items: flex-start;
     margin-bottom: 0.5rem;
+    padding-right: 40px;
 }
 
 .event {
     flex-grow: 1;
     border-bottom: 1px solid #4CAF50;
-    padding: 0.5rem 0;
+    padding: 0.5rem;
+    width: 100%;
 }
 
 .event-checkbox {
     position: absolute;
-    right: -40px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     opacity: 0;
@@ -130,6 +132,7 @@ body {
     width: 20px;
     height: 20px;
     accent-color: #FF5252;
+    z-index: 1;
 }
 
 .event-container:hover .event-checkbox {
@@ -219,7 +222,13 @@ body {
     flex-grow: 1;
 }
 
-.filter-btn, .clear-btn, .print-btn {
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.filter-btn, .clear-btn, .print-btn, .archive-btn {
     background: #4CAF50;
     color: white;
     padding: 0.5rem 1rem;
@@ -230,15 +239,27 @@ body {
 }
 
 .clear-btn {
-    background: #666;
+    background: transparent;
+    border: 1px solid white;;
+    color: #4caf50;
+    font-weight: none;
+    
+;
 }
 
-.print-btn {
-    background: #2196F3;
+.print-btn, .archive-btn {
+    background: #2196f3;
+    text-decoration: none;
+    display: inline-block;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    line-height: normal;
+    text-align: center;
 }
 
-.filter-btn:hover, .print-btn:hover {
-    opacity: 0.9;
+.filter-btn:hover, .print-btn:hover, .archive-btn:hover {
+    background: #1976D2;
 }
 
 .clear-btn:hover {
@@ -280,26 +301,59 @@ body {
     }
 }
 
-/* Automated entry styles */
-.event[data-type="morning_check"],
-.event[data-type="evening_check"] {
-    border-left: 4px solid #4CAF50;
+
+/* Day section styles */
+.day-section {
+    margin-bottom: 1rem;
     background: #2d2d2d;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
-.event[data-type="morning_check"] .event-timestamp {
-    color: #64B5F6;
+.day-header {
+    background: #1e1e1e;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #4CAF50;
 }
 
-.event[data-type="evening_check"] .event-timestamp {
-    color: #FF9800;
-}
-
-.event-summary pre {
-    font-family: 'Courier New', monospace;
-    white-space: pre-wrap;
+.day-header h2 {
     margin: 0;
-    padding: 0;
+    font-size: 1.2rem;
+    color: #4CAF50;
+}
+
+.day-content {
+    padding: 1rem;
+    display: none;
+}
+
+.day-content.expanded {
+    display: block;
+}
+
+.nav-btn {
+    position: fixed;
+    left: 20px;
+    bottom: 80px;
+    background: #2196F3;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 1000;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.nav-btn:hover {
+    background: #1976D2;
 }
 
 /* Git Push Button styles */
